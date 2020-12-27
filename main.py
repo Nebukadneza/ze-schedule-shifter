@@ -142,8 +142,6 @@ async def periodic():
         today = DAYS_OF_WEEK[datetime.now().weekday()]
         tomorrow = DAYS_OF_WEEK[(datetime.now()+timedelta(days=1)).weekday()]
         logger.info("Running! Found today=%s, tomorrow=%s", today, tomorrow)
-        fake_ctx = {}
-        websession = ClientSession()
 
         credential_file = os.path.expanduser(renault_settings.CREDENTIAL_PATH)
         if not os.path.isfile(credential_file):
@@ -151,6 +149,8 @@ async def periodic():
             await asyncio.sleep(30)
             continue
 
+        websession = ClientSession()
+        fake_ctx = {}
         fake_ctx["credential_store"] = FileCredentialStore(
             credential_file
         )
