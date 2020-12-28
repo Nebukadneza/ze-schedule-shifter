@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  zescheduleshifter:
+    image: nebukadneza/zescheduleshifter:latest
+    build:
+      dockerfile: Dockerfile
+      context: .
+    volumes:
+      - credentials:/root/.credentials
+    environment:
+      CHARGE_SCHEDULE_TO_CONTROL: 5
+      HVAC_SCHEDULE_TO_CONTROL: 5
+
+volumes:
+  credentials:
