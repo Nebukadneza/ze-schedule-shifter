@@ -2,7 +2,7 @@ version: '3'
 
 services:
   zescheduleshifter:
-    image: nebukadneza/zescheduleshifter:latest
+    image: nebukadneza/ze-schedule-shifter:latest
     build:
       dockerfile: Dockerfile
       context: .

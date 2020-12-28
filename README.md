@@ -16,6 +16,10 @@ forward every day. This allows you to leave both charging and air conditioning
 on its "scheduled" modes, and forget about it, without them triggering
 unsolicitedly.
 
+## Where?
+* [GitHub](https://github.com/Nebukadneza/ze-schedule-shifter)
+* [DockerHub](https://hub.docker.com/r/nebukadneza/ze-schedule-shifter)
+
 ## How to use
 ### Prerequisites
 * Car is paired to renault data-services
@@ -26,7 +30,7 @@ unsolicitedly.
 ### How to …
 * Set your cars charging and air-conditioning modes to "scheduled" on the cars multi-media system.
 * Run the container:
-  * `docker` (no compose): Pull and start the container: `docker run -d --restart unless-stopped --name zescheduleshifter nebukadneza/zescheduleshifter:latest`
+  * `docker` (no compose): Pull and start the container: `docker run -d --restart unless-stopped --name zescheduleshifter nebukadneza/ze-schedule-shifter:latest`
   * `docker-compose`: Find the `docker-compose.yaml` in this repository, and start it: `docker-compose up -d`
 * Log into your account:
   * `docker` (no compose): `docker exec -it zescheduleshifter renault-api status`
