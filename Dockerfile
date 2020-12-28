@@ -11,4 +11,6 @@ RUN python3 -m pip install -r /tmp/requirements.txt
 
 COPY main.py /
 
+VOLUME ["/root/.credentials"]
+
 ENTRYPOINT [ "/main.py" ]
