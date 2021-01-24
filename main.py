@@ -22,24 +22,24 @@ CHARGE_SCHEDULE_TO_CONTROL = int(os.getenv("CHARGE_SCHEDULE_TO_CONTROL", "5"))
 HVAC_SCHEDULE_TO_CONTROL = int(os.getenv("HVAC_SCHEDULE_TO_CONTROL", "5"))
 
 
-def _hvac_schedule_needs_modification(tomorrow, schedule, logger):
+def _hvac_schedule_needs_modification(next_day, schedule, logger):
     for day in DAYS_OF_WEEK:
-        if day != tomorrow:
-            # if a day != tomorrow has a schedule, we need to clear it
+        if day != next_day:
+            # if a day != next_day has a schedule, we need to clear it
             if getattr(schedule, day) is not None:
                 return True
 
-    # tomorrow should have a schedule
-    if (tomorrow_schedule := getattr(schedule, tomorrow)) is not None:
+    # next_day should have a schedule
+    if (next_day_schedule := getattr(schedule, next_day)) is not None:
         # and its time should be 15:15 @ 15min
-        if tomorrow_schedule.readyAtTime != "T15:15Z":
+        if next_day_schedule.readyAtTime != "T15:15Z":
             logger.debug(
-                "Tomorrow (%s) has a schedule other than ours! (T15:15Z)", tomorrow
+                "Next Day (%s) has a schedule other than ours! (T15:15Z)", next_day
             )
             return True
     # if there was no schedule at all, we need one
     else:
-        logger.debug("Tomorrow (%s) had no schedule", tomorrow)
+        logger.debug("Next Day (%s) had no schedule", next_day)
         return True
 
     # and it should be activated
@@ -50,7 +50,7 @@ def _hvac_schedule_needs_modification(tomorrow, schedule, logger):
     return False
 
 
-def _build_hvac_schedule(tomorrow):
+def _build_hvac_schedule(next_day):
     schedule = HvacSchedule(
         raw_data={},
         id=HVAC_SCHEDULE_TO_CONTROL,
@@ -63,20 +63,20 @@ def _build_hvac_schedule(tomorrow):
         saturday=None,
         sunday=None,
     )
-    tomorrow_schedule = HvacDaySchedule(raw_data={}, readyAtTime="T15:15Z")
-    setattr(schedule, tomorrow, tomorrow_schedule)
+    next_day_schedule = HvacDaySchedule(raw_data={}, readyAtTime="T15:15Z")
+    setattr(schedule, next_day, next_day_schedule)
     return schedule
 
 
-async def _check_and_update_hvac_schedule(tomorrow, vehicle):
+async def _check_and_update_hvac_schedule(next_day, vehicle):
     logger = logging.getLogger("hvac")
 
     current_schedule_data = await vehicle.get_hvac_settings()
     current_schedule = current_schedule_data.schedules[HVAC_SCHEDULE_TO_CONTROL - 1]
     logger.debug("Found current hvac schedule: %s", current_schedule)
 
-    if _hvac_schedule_needs_modification(tomorrow, current_schedule, logger):
-        new_schedule = _build_hvac_schedule(tomorrow)
+    if _hvac_schedule_needs_modification(next_day, current_schedule, logger):
+        new_schedule = _build_hvac_schedule(next_day)
         current_schedule_data.schedules[HVAC_SCHEDULE_TO_CONTROL - 1] = new_schedule
         logger.info(
             "Modifications needed! Will send new schedules %s",
@@ -87,25 +87,25 @@ async def _check_and_update_hvac_schedule(tomorrow, vehicle):
         logger.debug("No update needed")
 
 
-def _charge_schedule_needs_modification(tomorrow, schedule, logger):
+def _charge_schedule_needs_modification(next_day, schedule, logger):
     for day in DAYS_OF_WEEK:
-        if day != tomorrow:
-            # if a day != tomorrow has a schedule, we need to clear it
+        if day != next_day:
+            # if a day != next_day has a schedule, we need to clear it
             if getattr(schedule, day) is not None:
                 return True
 
-    # tomorrow should have a schedule
-    if (tomorrow_schedule := getattr(schedule, tomorrow)) is not None:
+    # next day should have a schedule
+    if (next_day_schedule := getattr(schedule, next_day)) is not None:
         # and its time should be 15:15 @ 15min
-        if tomorrow_schedule.startTime != "T15:15Z" or tomorrow_schedule.duration != 15:
+        if next_day_schedule.startTime != "T15:15Z" or next_day_schedule.duration != 15:
             logger.debug(
-                "Tomorrow (%s) has a schedule other than ours! (T15:15Z for 15min)",
-                tomorrow,
+                "Next Day (%s) has a schedule other than ours! (T15:15Z for 15min)",
+                next_day,
             )
             return True
     # if there was no schedule at all, we need one
     else:
-        logger.debug("Tomorrow (%s) had no schedule", tomorrow)
+        logger.debug("Next Day (%s) had no schedule", next_day)
         return True
 
     # and it should be activated
@@ -116,7 +116,7 @@ def _charge_schedule_needs_modification(tomorrow, schedule, logger):
     return False
 
 
-def _build_charge_schedule(tomorrow):
+def _build_charge_schedule(next_day):
     schedule = ChargeSchedule(
         raw_data={},
         id=CHARGE_SCHEDULE_TO_CONTROL,
@@ -129,22 +129,22 @@ def _build_charge_schedule(tomorrow):
         saturday=None,
         sunday=None,
     )
-    tomorrow_schedule = ChargeDaySchedule(
+    next_day_schedule = ChargeDaySchedule(
         raw_data={}, startTime="T15:15Z", duration="15"
     )
-    setattr(schedule, tomorrow, tomorrow_schedule)
+    setattr(schedule, next_day, next_day_schedule)
     return schedule
 
 
-async def _check_and_update_charge_schedule(tomorrow, vehicle):
+async def _check_and_update_charge_schedule(next_day, vehicle):
     logger = logging.getLogger("charge")
 
     current_schedule_data = await vehicle.get_charging_settings()
     current_schedule = current_schedule_data.schedules[CHARGE_SCHEDULE_TO_CONTROL - 1]
     logger.debug("Found current charge schedule: %s", current_schedule)
 
-    if _charge_schedule_needs_modification(tomorrow, current_schedule, logger):
-        new_schedule = _build_charge_schedule(tomorrow)
+    if _charge_schedule_needs_modification(next_day, current_schedule, logger):
+        new_schedule = _build_charge_schedule(next_day)
         current_schedule_data.schedules[CHARGE_SCHEDULE_TO_CONTROL - 1] = new_schedule
         logger.info(
             "Modifications needed! Will send new schedules %s",
@@ -169,8 +169,8 @@ async def periodic():
 
     while True:
         today = DAYS_OF_WEEK[datetime.now().weekday()]
-        tomorrow = DAYS_OF_WEEK[(datetime.now() + timedelta(days=1)).weekday()]
-        logger.info("Running! Found today=%s, tomorrow=%s", today, tomorrow)
+        next_day = DAYS_OF_WEEK[(datetime.now() + timedelta(days=4)).weekday()]
+        logger.info("Running! Found today=%s, next_day=%s", today, next_day)
 
         credential_file = os.path.expanduser(renault_settings.CREDENTIAL_PATH)
         if not os.path.isfile(credential_file):
@@ -195,7 +195,7 @@ async def periodic():
             continue
 
         try:
-            await _check_and_update_charge_schedule(tomorrow, vehicle)
+            await _check_and_update_charge_schedule(next_day, vehicle)
         except Exception as exc:
             logger.warning(
                 "Could not check or update charge schedule: %s! Will retry soon", exc
@@ -204,7 +204,7 @@ async def periodic():
             continue
 
         try:
-            await _check_and_update_hvac_schedule(tomorrow, vehicle)
+            await _check_and_update_hvac_schedule(next_day, vehicle)
         except Exception as exc:
             logger.warning(
                 "Could not check or update hvac schedule: %s! Will retry soon", exc
