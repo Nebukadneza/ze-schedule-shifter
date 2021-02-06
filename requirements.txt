@@ -1,1 +1,1 @@
-renault-api[cli] @ git+https://github.com/hacf-fr/renault-api.git@a20afb16147d49626d35a90bf912ed55149e80f2
+renault-api[cli]==0.1.2
