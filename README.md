@@ -47,8 +47,9 @@ that these are activated and only one entry is present in them — tomorrow at
 15:15 (UTC). If you want the service to control another. If you want to change
 this, use the environment variables `CHARGE_SCHEDULE_TO_CONTROL` and
 `HVAC_SCHEDULE_TO_CONTROL` respectively, setting them to a number between `1`
-and `5`. The `docker-compose` file has them already defined for you. For
-`docker`, see the `-e` parameter of the `run` command.
+and `5`. For both, the special value `-1` disables updating. The
+`docker-compose` file has them already defined for you. For `docker`, see the
+`-e` parameter of the `run` command.
 
 # Thanks
 Thanks to …

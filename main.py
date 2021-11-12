@@ -71,6 +71,10 @@ def _build_hvac_schedule(next_day):
 async def _check_and_update_hvac_schedule(next_day, vehicle):
     logger = logging.getLogger("hvac")
 
+    if HVAC_SCHEDULE_TO_CONTROL == -1:
+        logger.info("Not updating HvacSchedule, HVAC_SCHEDULE_TO_CONTROL is -1")
+        return
+
     current_schedule_data = await vehicle.get_hvac_settings()
     current_schedule = current_schedule_data.schedules[HVAC_SCHEDULE_TO_CONTROL - 1]
     logger.debug("Found current hvac schedule: %s", current_schedule)
@@ -138,6 +142,10 @@ def _build_charge_schedule(next_day):
 
 async def _check_and_update_charge_schedule(next_day, vehicle):
     logger = logging.getLogger("charge")
+
+    if CHARGE_SCHEDULE_TO_CONTROL == -1:
+        logger.info("Not updating ChargeSchedule, CHARGE_SCHEDULE_TO_CONTROL is -1")
+        return
 
     current_schedule_data = await vehicle.get_charging_settings()
     current_schedule = current_schedule_data.schedules[CHARGE_SCHEDULE_TO_CONTROL - 1]
